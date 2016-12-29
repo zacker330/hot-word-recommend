@@ -1,0 +1,9 @@
+---
+
+## openresty
+
+openresty_vhosts_path: "{{openresty_home}}/nginx/conf/servers"
+business_lua_path: "{{openresty_home}}/business-lua"
+business_html_template: "{{openresty_home}}/nginx/html/templates"
+public_static_resource_dir: "{{openresty_home}}/nginx/html"
+nginx_log_path: /var/log/nginx

@@ -1,0 +1,23 @@
+- hosts: all
+  sudo: yes
+  vars_files:
+    - ./vars/base-env.yml
+  roles:
+    - common
+
+- hosts: hotnode1
+  sudo: yes
+  vars_files:
+    - ./vars/base-env.yml
+  roles:
+    - openresty
+    - front-app
+
+- hosts: hotnode2
+  sudo: yes
+  vars_files:
+    - ./vars/base-env.yml
+  roles:
+    - redis
+    - jdk8
+    - worker

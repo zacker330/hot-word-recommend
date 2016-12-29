@@ -1,0 +1,22 @@
+---
+- hosts: local
+  connection: local
+  vars_files:
+    - ./vars/base-env.yml
+  vars:
+    openresty_vhosts_path: /usr/local/openresty/nginx/conf/servers
+  tasks:
+    - name: copy template html
+      copy: src="./roles/front-app/files/lua-templates/" dest="{{business_html_template}}"  force=true
+      tags:
+        - app
+
+    - name: copy public resource
+      copy: src="./roles/front-app/files/public" dest="{{public_static_resource_dir}}" force=true
+      tags:
+        - app
+
+    - name: copy app.conf to nginx servers
+      template: src="./roles/front-app/templates/app.conf" dest="/usr/local/openresty/nginx/conf/servers/app.conf" force=true
+      tags:
+        - app

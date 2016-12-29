@@ -1,0 +1,8 @@
+---
+- hosts: hotnode1
+  sudo: yes
+  vars_files:
+    - ./vars/base-env.yml
+  roles:
+    - front-app
+    - openresty

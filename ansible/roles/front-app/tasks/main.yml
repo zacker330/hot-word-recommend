@@ -1,0 +1,21 @@
+---
+- name: copy template html
+  copy: src="lua-templates/" dest="{{business_html_template}}" owner=root group=root force=true
+  tags:
+    - app
+
+- name: copy public resource
+  copy: src="public" dest="{{public_static_resource_dir}}" owner=root group=root force=true
+  tags:
+    - app
+
+- name: copy app.conf to nginx servers
+  template: src="app.conf" dest="{{openresty_vhosts_path}}" owner=root group=root force=true
+  tags:
+    - app
+
+
+- name: restart nginx
+  service: name="nginx" state="started"
+  tags:
+    - openresty

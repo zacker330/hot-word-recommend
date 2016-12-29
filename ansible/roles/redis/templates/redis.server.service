@@ -1,0 +1,21 @@
+[Unit]
+Description=Redis Datastore Server
+After=network.target
+
+[Service]
+Type=forking
+PIDFile={{redis_pidfile}}
+User={{redis_user}}
+Group={{redis_group}}
+
+Environment=statedir={{redis_dir}}
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p ${statedir}
+ExecStartPre=/bin/chown -R {{redis_user}}:{{redis_group}} ${statedir}
+ExecStart={{redis_dir}}/bin/redis-server {{redis_conf_path}}
+ExecReload=/bin/kill -USR2 $MAINPID
+ExecStop={{redis_dir}}/bin/redis-cli shutdown
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

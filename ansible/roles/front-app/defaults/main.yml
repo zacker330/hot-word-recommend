@@ -1,0 +1,4 @@
+---
+# defaults file for app
+lua_resty_redis_version: 0.25
+lua_resty_redis_download_url: "https://github.com/openresty/lua-resty-redis/archive/v{{lua_resty_redis_version}}.tar.gz"

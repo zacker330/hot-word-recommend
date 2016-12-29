@@ -1,0 +1,19 @@
+---
+# - name: copy hosts
+#   copy: src="hosts" dest="/etc/hosts" force=yes
+
+- name: copy sources.list
+  copy: src="sources.list" dest="/etc/apt/" force=yes
+
+- apt: update_cache=yes cache_valid_time=7200
+  ignore_errors: yes
+
+- name: add /sbin to path
+  lineinfile: dest="/etc/profile" line="PATH=/sbin/:$PATH"
+
+- name: install softwares
+  apt: name={{item}} state=present allow_unauthenticated=yes
+  with_items:
+    - wget
+    - unzip
+    - openssh-server

@@ -1,0 +1,151 @@
+---
+- name: create  redis_user
+  group: name={{ redis_group }} state=present
+  when: redis_group is defined
+
+- name: create user
+  user: name={{ redis_user }} createhome=yes   groups={{ redis_group }} append=yes
+  when: redis_user is defined
+
+- stat: path={{ redis_dir }}
+  register: redis
+
+- name: install dependencies
+  apt:
+    pkg: "{{ item }}"
+    update_cache: yes
+    cache_valid_time: 186400
+    state: present
+  with_items:
+    - gcc
+    - make
+    - libc6-dev
+
+- name: download redis {{redis_download_url}}
+  get_url: url="{{redis_download_url}}" dest="/usr/local/src/" owner={{ redis_user }} group={{ redis_group }}
+  when: redis.stat.exists == False
+  tags:
+    - install
+
+
+- name: extract redis tarball
+  unarchive:
+    src: /usr/local/src/redis-{{ redis_version }}.tar.gz
+    dest: /usr/local/src
+    creates: /usr/local/src/redis-{{ redis_version }}/Makefile
+    copy: no
+  when: redis.stat.exists == False
+
+
+
+- name: compile redis
+  command: make -j{{ ansible_processor_cores + 1 }}
+  args:
+    chdir: /usr/local/src/redis-{{ redis_version }}
+    creates: /usr/local/src/redis-{{ redis_version }}/src/redis-server
+  when: redis.stat.exists == False
+
+
+
+- name: create redis install directory
+  file:
+    path: "{{ redis_install_dir }}"
+    state: directory
+  when: redis.stat.exists == False
+
+
+- name: add redis user
+  user:
+    name: "{{ redis_user }}"
+    comment: "Redis"
+    home: "{{ redis_install_dir }}"
+    shell: /bin/false
+    system: yes
+
+
+- name: create /var/run/redis
+  file:
+    path: /var/run/redis
+    state: directory
+    owner: "{{ redis_user }}"
+  when: redis.stat.exists == False
+
+
+- name: install redis
+  command: make PREFIX={{ redis_install_dir }} install
+  args:
+    chdir: /usr/local/src/redis-{{ redis_version }}
+    creates: "{{ redis_install_dir }}/bin/redis-server"
+  when: redis.stat.exists == False
+
+
+- name: create redis working directory
+  file:
+    path: "{{ redis_dir }}"
+    state: directory
+  when: redis.stat.exists == False
+
+
+- name: create redis working directory
+  file:
+    path: "{{ redis_dir }}"
+    state: directory
+    recurse: yes
+    owner: "{{ redis_user }}"
+  when: redis.stat.exists == False
+
+- name: create log directory if it does not exist
+  file:
+    state: directory
+    path: "/var/log/redis"
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+  # when:
+  #   - redis_logfile != '""'
+  #   - not logdir.stat.exists
+
+
+- name: check if pid directory exists
+  stat:
+    path: "{{ redis_pidfile|dirname }}"
+  register: piddir
+  changed_when: false
+  when: redis_pidfile != '""'
+
+- name: create pid directory if it does not exist
+  file:
+    state: directory
+    path: "{{ redis_pidfile|dirname }}"
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+  when:
+    - redis_pidfile != '""'
+    - not piddir.stat.exists
+
+
+- file: state=directory path="/etc/redis"   owner="{{ redis_user }}" group="{{ redis_group }}"
+
+- name: create redis config file
+  template:
+    src: redis.conf.j2
+    dest: /etc/redis/redis.conf
+    owner: "{{ redis_user }}"
+    force: true
+  notify: restart redis
+
+
+- name: copy systemd conf
+  template:
+    dest: /etc/systemd/system/{{ redis_service_name }}
+    src: redis.server.service
+    mode: 0700
+    force: true
+  notify: restart redis
+
+
+- name: ensure redis is running
+  service:
+    name: "{{ redis_service_name }}"
+    state: restarted
+    # enable: true
+  when: redis_as_service

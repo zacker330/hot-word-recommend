@@ -1,0 +1,20 @@
+---
+user: hotword
+user_group: hotword
+
+
+### JVM
+JAVA_HOME: /usr/lib/jvm/java
+
+## openresty
+openresty_version: openresty-1.9.15.1
+openresty_download_url: "http://openresty.org/download/{{openresty_version}}.tar.gz"
+openresty_home: /usr/local/openresty
+openresty_vhosts_path: "{{openresty_home}}/nginx/conf/servers"
+business_html_template: "{{openresty_home}}/nginx/html/templates"
+public_static_resource_dir: "{{openresty_home}}/nginx/html"
+
+
+### redis
+redis_host: 192.168.10.12
+redis_port: 6392

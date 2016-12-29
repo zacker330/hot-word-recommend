@@ -1,0 +1,8 @@
+- hosts: hotnode2
+  sudo: yes
+
+  vars_files:
+    - ./vars/base-env.yml
+  # tasks:
+  #   - name: copy jar
+  #     copy:
