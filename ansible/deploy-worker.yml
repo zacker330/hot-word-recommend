@@ -1,8 +1,24 @@
 - hosts: hotnode2
   sudo: yes
-
+  vars:
+    worker_path: /tmp/worker.jar
   vars_files:
     - ./vars/base-env.yml
-  # tasks:
-  #   - name: copy jar
-  #     copy:
+  tasks:
+
+    - name: copy places.zip
+      unarchive:
+        src: "../files/places.txt.zip"
+        dest: "/tmp"
+
+    - name: copy jar to remote machine
+      copy:
+        src: "../autocomplete-worker/target/autocomplete-worker-1.0-SNAPSHOT-jar-with-dependencies.jar"
+        dest: "{{worker_path}}"
+
+    - name: run java
+      shell: "{{JAVA_PATH}} -jar {{worker_path}} {{places_txt_path}} flushall"
+      args:
+        chdir: "/tmp"
+    # - name: run java
+    #   command: "{{JAVA_PATH}} --jar {{worker_path}} {{places_txt_path}} flushall"

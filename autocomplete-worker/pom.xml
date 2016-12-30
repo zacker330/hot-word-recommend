@@ -61,7 +61,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>codes.showme.Worker</mainClass>
+              <mainClass>codes.showme.autocomplete.InitWorker</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>

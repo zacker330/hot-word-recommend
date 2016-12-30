@@ -2,9 +2,11 @@
 user: hotword
 user_group: hotword
 
+places_txt_path: /tmp/places.txt
 
 ### JVM
 JAVA_HOME: /usr/lib/jvm/java
+JAVA_PATH: "{{JAVA_HOME}}/bin/java"
 
 ## openresty
 openresty_version: openresty-1.9.15.1

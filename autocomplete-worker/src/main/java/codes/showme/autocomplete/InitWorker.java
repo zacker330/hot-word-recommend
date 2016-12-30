@@ -32,12 +32,21 @@ public class InitWorker {
             throw new IllegalArgumentException(pathname + " is not found");
         }
 
-        InitWorker initWorker = new InitWorker();
-
         JedisPool jedisPool = createJedisPool();
+
+        if (args.length > 1) {
+            String flushallArg = args[1];
+            if (flushallArg.equals("flushall")) {
+                Jedis jedis = jedisPool.getResource();
+                jedis.select(0);
+                jedis.flushAll();
+            }
+        }
+        InitWorker initWorker = new InitWorker();
 
         initWorker.iterateLines(file, 2, places -> {
             Jedis  jedis = jedisPool.getResource();
+            jedis.select(0);
             Transaction multi = jedis.multi();
             try{
                 List<Pair<String, String>> pairList = initWorker.convertLineToRedisRecord(places);
@@ -45,14 +54,14 @@ public class InitWorker {
                     multi.zincrby(pair.getLeft(), 0.0, pair.getRight());
                 }
                 multi.exec();
-                System.out.println(new Date().getTime());
+
             }catch (Exception e){
                 System.err.println(e.getMessage());
             }finally {
                 try {
                     multi.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.err.println(e.getMessage());
                 }
                 jedis.close();
             }
@@ -81,15 +90,6 @@ public class InitWorker {
         closeQuietly(inputReader);
     }
 
-    private void closeQuietly(Closeable closeable) {
-        try {
-            if (closeable != null) {
-                closeable.close();
-            }
-        } catch (final IOException ioe) {
-            // ignore
-        }
-    }
 
     public List<Pair<String, String>> convertLineToRedisRecord(List<String> lines) {
         List<Pair<String, String>> result = new ArrayList<>();
@@ -173,6 +173,17 @@ public class InitWorker {
         jedisPoolConfig.setTestOnReturn(true);
         // 初始化JedisPool
         return new JedisPool(jedisPoolConfig, ip, port, timeout);
+    }
+
+
+    private void closeQuietly(Closeable closeable) {
+        try {
+            if (closeable != null) {
+                closeable.close();
+            }
+        } catch (final IOException ioe) {
+            // ignore
+        }
     }
 
 }
