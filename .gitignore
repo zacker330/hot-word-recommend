@@ -3,10 +3,12 @@
 **/jdk*.tar.gz
 **/scala-*.tgz
 provision/files/kafka-monitor/*.jar
+files/places.txt
 
 .gradle
 build/
 .vagrant
+target/
 
 .vagrant/
 *.retry
