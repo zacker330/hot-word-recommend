@@ -9,7 +9,10 @@ import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Transaction;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -45,19 +48,19 @@ public class InitWorker {
         InitWorker initWorker = new InitWorker();
 
         initWorker.iterateLines(file, 2, places -> {
-            Jedis  jedis = jedisPool.getResource();
+            Jedis jedis = jedisPool.getResource();
             jedis.select(0);
             Transaction multi = jedis.multi();
-            try{
+            try {
                 List<Pair<String, String>> pairList = initWorker.convertLineToRedisRecord(places);
                 for (Pair<String, String> pair : pairList) {
                     multi.zincrby(pair.getLeft(), 0.0, pair.getRight());
                 }
                 multi.exec();
 
-            }catch (Exception e){
+            } catch (Exception e) {
                 System.err.println(e.getMessage());
-            }finally {
+            } finally {
                 try {
                     multi.close();
                 } catch (IOException e) {
@@ -104,11 +107,18 @@ public class InitWorker {
                     String pinyinTogether = getPinyinTogether(pinyin);
 
                     result.add(new Pair<>(getEachFirstAlpha(pinyin), chinesePlaceName));
-                    List<Pair<String, String>> collect = getSequences(pinyinTogether)
+
+                    List<Pair<String, String>> pairs = getSequences(pinyinTogether)
                             .stream()
                             .map(s -> new Pair<>(s, chinesePlaceName))
                             .collect(Collectors.toList());
-                    result.addAll(collect);
+                    result.addAll(pairs);
+
+                    List<Pair<String, String>> chinesePairs = getChineseSequences(chinesePlaceName)
+                            .stream()
+                            .map(s -> new Pair<>(s, chinesePlaceName))
+                            .collect(Collectors.toList());
+                    result.addAll(chinesePairs);
 
                 });
         return result;
@@ -147,6 +157,26 @@ public class InitWorker {
                 stringBuilder.append(pinyinChars[innerIndex]);
             }
             result.add(stringBuilder.toString());
+        }
+        return result;
+    }
+
+    /**
+     *辽宁省大连市 -> {
+     *     辽
+     *     辽宁
+     *     辽宁省
+     *     辽宁省大
+     *     辽宁省大连
+     *     辽宁省大连市
+     *}
+     * @param chinesePlaceName
+     * @return
+     */
+    private List<String> getChineseSequences(String chinesePlaceName) {
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < chinesePlaceName.length(); i++) {
+            result.add(chinesePlaceName.substring(0, i+1));
         }
         return result;
     }

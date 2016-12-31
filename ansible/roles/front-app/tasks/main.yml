@@ -16,6 +16,6 @@
 
 
 - name: restart nginx
-  service: name="nginx" state="started"
+  service: name="nginx" state="restarted"
   tags:
-    - openresty
+    - app

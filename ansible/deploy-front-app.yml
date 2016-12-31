@@ -5,4 +5,3 @@
     - ./vars/base-env.yml
   roles:
     - front-app
-    - openresty

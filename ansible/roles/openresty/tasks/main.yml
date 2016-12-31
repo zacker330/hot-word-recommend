@@ -80,6 +80,7 @@
   notify: restart nginx
   tags:
     - openresty
+    
 - shell: "sudo update-rc.d -f nginx defaults"
   notify: restart nginx
   tags:

@@ -20,4 +20,3 @@
   roles:
     - redis
     - jdk8
-    - worker
